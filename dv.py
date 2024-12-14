@@ -176,6 +176,61 @@ fig.write_html('bar_chart_by_hour.html')
 
 
 
+
+#TREEMAP
+
+
+
+
+# Replace 'Station Wagon/Sport Utility Vehicle' with 'SUV' in the 'VEHICLE TYPE CODE 3' column
+dataset['VEHICLE TYPE CODE 3'] = dataset['VEHICLE TYPE CODE 3'].replace('Station Wagon/Sport Utility Vehicle', 'SUV')
+
+# Filter out "Unspecified" from both contributing factors and vehicle types
+filtered_dataset = dataset[
+    (dataset['CONTRIBUTING FACTOR VEHICLE 1'] != 'Unspecified') &
+    (dataset['VEHICLE TYPE CODE 3'] != 'Unspecified')
+]
+
+# Get the top 5 contributing factors and top 3 vehicle types
+top_contributing_factors = filtered_dataset['CONTRIBUTING FACTOR VEHICLE 1'].value_counts().nlargest(5).index
+top_vehicle_types = filtered_dataset['VEHICLE TYPE CODE 3'].value_counts().nlargest(3).index
+
+# Filter the dataset to include only the top 5 contributing factors and top 3 vehicle types
+filtered_data = filtered_dataset[
+    filtered_dataset['CONTRIBUTING FACTOR VEHICLE 1'].isin(top_contributing_factors) & 
+    filtered_dataset['VEHICLE TYPE CODE 3'].isin(top_vehicle_types)
+]
+
+# Prepare the data for the Treemap visualization
+treemap_data = filtered_data.groupby(['CONTRIBUTING FACTOR VEHICLE 1', 'VEHICLE TYPE CODE 3']).size().reset_index(name='Count')
+
+# Create the Treemap using Plotly with dark theme
+fig3 = px.sunburst(treemap_data, 
+                   path=['CONTRIBUTING FACTOR VEHICLE 1', 'VEHICLE TYPE CODE 3'], 
+                   values='Count',
+                   template="plotly_dark", 
+                   title='Treemap of Top 5 Contributing Factors and Top 3 Vehicle Types (Excluding Unspecified)')
+                #    color_discrete_sequence=px.colors.qualitative.Light24)
+                #                    color='Count',  # Apply color based on the count of each combinatio
+                #    color_continuous_scale='Plasma')
+                   
+                   
+
+
+
+# Adjust the size of the Treemap
+fig3.update_layout(
+    height=550  # Increase the height to fit the content better
+    # width=400,   # Adjust the width for better proportions
+)
+
+# Show the Treemap
+fig3.show()
+
+# Save the Treemap as an HTML file for embedding
+fig3.write_html('treemap.html')
+
+
 # Define layout for the HTML grid with pie charts in the bottom-right quadrant
 html_layout = f"""
 <!DOCTYPE html>
@@ -189,7 +244,7 @@ html_layout = f"""
         .grid-container {{
             display: grid;
             grid-template-columns: 50% 50%;
-            grid-template-rows: 60% 40%;
+            grid-template-rows: 60% 45%;
             height: 100vh;
 
         }}
@@ -233,10 +288,13 @@ html_layout = f"""
 
         
         <!-- Top Right: Place the bar graph here -->
-        <div class="top-right">
+        <div class="bottom-left">
             <iframe src="bar_chart_by_hour.html" title="Crashes by Hour of Day"></iframe>
         </div>
 
+        <div class="top-right">
+        <iframe src="treemap.html" title="Treemap of Contributing Factors and Vehicle Types"></iframe>
+        </div>
 
 
 
@@ -254,9 +312,7 @@ html_layout = f"""
 
 
 
-        <div class="bottom-left">
-            <p>Bottom Left Quadrant</p>
-        </div>
+
     </div>
 </body>
 </html>

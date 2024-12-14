@@ -1,8 +1,6 @@
+import plotly.graph_objects as go
 import plotly.express as px
 import pandas as pd
-
-
-
 import requests
 
 # Load the dataset
@@ -42,7 +40,8 @@ fig_killed = go.Figure(data=[go.Pie(labels=labels_killed, values=killed_data, ho
 # Set the title for the pie chart
 fig_killed.update_layout(
     title="People Killed in Traffic Crash 2012-23",
-    template="plotly_dark"
+    template="plotly_dark",
+    title_font=dict(size=16, family="Arial", weight='bold'),
 )
 
 # Create the pie chart for Total People Injured
@@ -51,6 +50,7 @@ fig_injured = go.Figure(data=[go.Pie(labels=labels_injured, values=injured_data,
 # Set the title for the pie chart
 fig_injured.update_layout(
     title="People Injured in Traffic Crash 2012-23",
+    title_font=dict(size=16, family="Arial", weight='bold'),
     template="plotly_dark"
 )
 # Save the pie chart HTML files for embedding
@@ -102,6 +102,8 @@ fig_map = go.Figure(go.Choropleth(
 ))
 
 
+
+
 # BAR GRAPH
 
 # Convert the 'CRASH TIME' to datetime and extract the hour of the day
@@ -130,7 +132,7 @@ fig = go.Figure(data=[go.Bar(
 # Add the title and axis labels
 fig.update_layout(
     title="Number of Crashes by Hour of the Day (2012-2023)",
-    title_font=dict(size=16, color="black", family="Arial", weight='bold'),
+    title_font=dict(size=16, family="Arial", weight='bold'),
     xaxis_title="Hour of Day",
     yaxis_title="Crash Count",
     xaxis=dict(tickmode='linear', tickvals=list(range(24))),  # Set x-axis from 0 to 23 hours
@@ -172,9 +174,65 @@ fig.write_html('bar_chart_by_hour.html')
 
 
 
+
+
+
+#TREEMAP
+
+
+
+
+# Replace 'Station Wagon/Sport Utility Vehicle' with 'SUV' in the 'VEHICLE TYPE CODE 3' column
+dataset['VEHICLE TYPE CODE 3'] = dataset['VEHICLE TYPE CODE 3'].replace('Station Wagon/Sport Utility Vehicle', 'SUV')
+
+# Filter out "Unspecified" from both contributing factors and vehicle types
+filtered_dataset = dataset[
+    (dataset['CONTRIBUTING FACTOR VEHICLE 1'] != 'Unspecified') &
+    (dataset['VEHICLE TYPE CODE 3'] != 'Unspecified')
+]
+
+# Get the top 5 contributing factors and top 3 vehicle types
+top_contributing_factors = filtered_dataset['CONTRIBUTING FACTOR VEHICLE 1'].value_counts().nlargest(5).index
+top_vehicle_types = filtered_dataset['VEHICLE TYPE CODE 3'].value_counts().nlargest(3).index
+
+# Filter the dataset to include only the top 5 contributing factors and top 3 vehicle types
+filtered_data = filtered_dataset[
+    filtered_dataset['CONTRIBUTING FACTOR VEHICLE 1'].isin(top_contributing_factors) & 
+    filtered_dataset['VEHICLE TYPE CODE 3'].isin(top_vehicle_types)
+]
+
+# Prepare the data for the Treemap visualization
+treemap_data = filtered_data.groupby(['CONTRIBUTING FACTOR VEHICLE 1', 'VEHICLE TYPE CODE 3']).size().reset_index(name='Count')
+
+# Create the Treemap using Plotly with dark theme
+fig3 = px.sunburst(treemap_data, 
+                   path=['CONTRIBUTING FACTOR VEHICLE 1', 'VEHICLE TYPE CODE 3'], 
+                   values='Count',
+                   template="plotly_dark", 
+                   title='Treemap of Top 5 Contributing Factors and Top 3 Vehicle Types (Excluding Unspecified)')
+                #    color_discrete_sequence=px.colors.qualitative.Light24)
+                #                    color='Count',  # Apply color based on the count of each combinatio
+                #    color_continuous_scale='Plasma')
+                   
+                   
+
+
+
+# Adjust the size of the Treemap
+fig3.update_layout(
+    height=550  # Increase the height to fit the content better
+    # width=400,   # Adjust the width for better proportions
+)
+
+# Show the Treemap
+fig3.show()
+
+# Save the Treemap as an HTML file for embedding
+fig3.write_html('treemap.html')
+
+
 # Define layout for the HTML grid with pie charts in the bottom-right quadrant
 html_layout = f"""
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -183,39 +241,42 @@ html_layout = f"""
     <title>Crash Intensity Map</title>
     <style>
         /* Set up the grid layout with 4 quadrants */
-        .grid-container {
+        .grid-container {{
             display: grid;
             grid-template-columns: 50% 50%;
-            grid-template-rows: 60% 40%;
+            grid-template-rows: 60% 45%;
             height: 100vh;
-        }
+
+        }}
 
         /* Top-left quadrant for the map */
-        .top-left {
+        .top-left {{
             grid-column: 1;
             grid-row: 1;
-        }
+        }}
 
         /* Bottom-right quadrant for pie charts side by side */
-        .bottom-right {
+        .bottom-right {{
             grid-column: 2;
             grid-row: 2;
             background-color: #f0f0f0;
+ 
             display: flex;
-        }
+            
+        }}
 
         /* Top-right quadrant for the bar graph */
-        .top-right {
+        .top-right {{
             grid-column: 2;
             grid-row: 1;
             background-color: #f0f0f0;
-        }
+        }}
 
-        iframe {
+        iframe {{
             width: 100%;
             height: 100%;
             border: none;
-        }
+        }}
     </style>
 </head>
 <body>
@@ -225,24 +286,33 @@ html_layout = f"""
             <iframe src="choropleth_map.html" title="Crash Intensity Map"></iframe>
         </div>
 
+        
         <!-- Top Right: Place the bar graph here -->
-        <div class="top-right">
+        <div class="bottom-left">
             <iframe src="bar_chart_by_hour.html" title="Crashes by Hour of Day"></iframe>
         </div>
+
+        <div class="top-right">
+        <iframe src="treemap.html" title="Treemap of Contributing Factors and Vehicle Types"></iframe>
+        </div>
+
+
 
         <!-- Bottom Right: Pie charts for killed and injured side by side -->
         <div class="bottom-right">
             <div style="width: 50%;">
+                
                 <iframe src="pie_chart_killed.html"></iframe>
             </div>
             <div style="width: 50%;">
+             
                 <iframe src="pie_chart_injured.html"></iframe>
             </div>
         </div>
 
-        <div class="bottom-left">
-            <p>Bottom Left Quadrant</p>
-        </div>
+
+
+
     </div>
 </body>
 </html>
@@ -253,4 +323,3 @@ with open('quad_layout_with_pie_chart_headings.html', 'w') as f:
     f.write(html_layout)
 
 print("HTML layout with pie chart headings saved as 'quad_layout_with_pie_chart_headings.html'. Open this file in a browser to view the result.")
-
