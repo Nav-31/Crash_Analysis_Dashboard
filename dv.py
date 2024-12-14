@@ -1,15 +1,13 @@
+import plotly.graph_objects as go
 import plotly.express as px
 import pandas as pd
+import requests
 
 # Load the dataset
 data_path = 'cleaned_dataset.csv'
 dataset = pd.read_csv(data_path)
 
 
-
-import pandas as pd
-import plotly.graph_objects as go
-import requests
 
 
 # Summing up the number of people killed and injured for each category
@@ -41,7 +39,9 @@ fig_killed = go.Figure(data=[go.Pie(labels=labels_killed, values=killed_data, ho
 
 # Set the title for the pie chart
 fig_killed.update_layout(
-    title="People Killed in Traffic Crash 2012-23"
+    title="People Killed in Traffic Crash 2012-23",
+    template="plotly_dark",
+    title_font=dict(size=16, family="Arial", weight='bold'),
 )
 
 # Create the pie chart for Total People Injured
@@ -49,7 +49,9 @@ fig_injured = go.Figure(data=[go.Pie(labels=labels_injured, values=injured_data,
 
 # Set the title for the pie chart
 fig_injured.update_layout(
-    title="People Injured in Traffic Crash 2012-23"
+    title="People Injured in Traffic Crash 2012-23",
+    title_font=dict(size=16, family="Arial", weight='bold'),
+    template="plotly_dark"
 )
 # Save the pie chart HTML files for embedding
 fig_killed.write_html('pie_chart_killed.html')
@@ -99,6 +101,81 @@ fig_map = go.Figure(go.Choropleth(
     colorscale="Viridis"
 ))
 
+
+
+
+# BAR GRAPH
+
+# Convert the 'CRASH TIME' to datetime and extract the hour of the day
+dataset['CRASH TIME'] = pd.to_datetime(dataset['CRASH TIME'], format='%H:%M')
+dataset['Hour of Day'] = dataset['CRASH TIME'].dt.hour
+
+# Group by the hour and count the number of crashes
+crash_counts_by_hour = dataset.groupby('Hour of Day').size().reset_index(name='Crash Count')
+
+# Calculate the total number of crashes
+total_crashes = crash_counts_by_hour['Crash Count'].sum()
+
+# Calculate the percentage for each hour
+crash_counts_by_hour['Percentage'] = (crash_counts_by_hour['Crash Count'] / total_crashes) * 100
+crash_counts_by_hour['Percentage'] = crash_counts_by_hour['Percentage'].round(2)
+
+# Create the figure with the bar chart using Plotly
+fig = go.Figure(data=[go.Bar(
+    x=crash_counts_by_hour['Hour of Day'],
+    y=crash_counts_by_hour['Crash Count'],
+    marker=dict(color=crash_counts_by_hour['Crash Count'], colorscale='Viridis', showscale=True),
+    hovertemplate="Hour: %{x}<br>Crashes: %{y}<br>% of Crashes at this hour: %{customdata}%<extra></extra>",  # Custom hover text
+    customdata=crash_counts_by_hour['Percentage']  # Pass the percentage as custom data for hover
+)])
+
+# Add the title and axis labels
+fig.update_layout(
+    title="Number of Crashes by Hour of the Day (2012-2023)",
+    title_font=dict(size=16, family="Arial", weight='bold'),
+    xaxis_title="Hour of Day",
+    yaxis_title="Crash Count",
+    xaxis=dict(tickmode='linear', tickvals=list(range(24))),  # Set x-axis from 0 to 23 hours
+    template="plotly_dark",  # Optional: dark theme for better aesthetics
+)
+
+# Add annotations for the peak value
+max_crash_hour = crash_counts_by_hour.loc[crash_counts_by_hour['Crash Count'].idxmax()]
+fig.add_annotation(
+    x=max_crash_hour['Hour of Day'],
+    y=max_crash_hour['Crash Count'],
+    text=f"Peak: {max_crash_hour['Crash Count']} crashes",
+    showarrow=True,
+    arrowhead=2,
+    arrowsize=1,
+    arrowcolor='red',
+    font=dict(size=12, color="red"),
+    ax=20,
+    ay=-40
+)
+
+# Add annotations for the lowest crash count hour
+min_crash_hour = crash_counts_by_hour.loc[crash_counts_by_hour['Crash Count'].idxmin()]
+fig.add_annotation(
+    x=min_crash_hour['Hour of Day'],
+    y=min_crash_hour['Crash Count'],
+    text=f"Lowest: {min_crash_hour['Crash Count']} crashes",
+    showarrow=True,
+    arrowhead=2,
+    arrowsize=1,
+    arrowcolor='red',
+    font=dict(size=12, color="red"),
+    ax=-20,
+    ay=-60
+)
+
+# Save the bar chart as an HTML file for embedding
+fig.write_html('bar_chart_by_hour.html')
+
+
+
+
+
 # Define layout for the HTML grid with pie charts in the bottom-right quadrant
 html_layout = f"""
 <!DOCTYPE html>
@@ -133,7 +210,12 @@ html_layout = f"""
             
         }}
 
-
+        /* Top-right quadrant for the bar graph */
+        .top-right {{
+            grid-column: 2;
+            grid-row: 1;
+            background-color: #f0f0f0;
+        }}
 
         iframe {{
             width: 100%;
@@ -150,7 +232,10 @@ html_layout = f"""
         </div>
 
         
-
+        <!-- Top Right: Place the bar graph here -->
+        <div class="top-right">
+            <iframe src="bar_chart_by_hour.html" title="Crashes by Hour of Day"></iframe>
+        </div>
 
 
 
@@ -167,9 +252,7 @@ html_layout = f"""
             </div>
         </div>
 
-        <div class="top-right">
-            <p>Top Right Quadrant</p>
-        </div>
+
 
         <div class="bottom-left">
             <p>Bottom Left Quadrant</p>
