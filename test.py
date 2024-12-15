@@ -120,7 +120,7 @@ fig = px.choropleth_mapbox(
     mapbox_style='carto-positron',  # Use light map style
     title='Crash Intensity by Borough Over Time',
     center={"lat": 40.7128, "lon": -74.0060},  # Centered on NYC
-    zoom=8.3,
+    zoom=8.4,
     color_continuous_scale='Spectral',  # Enhanced color scale
     labels={'Count': 'Crash Intensity'},
 )
@@ -156,7 +156,7 @@ fig.update_layout(
             int(borough_crash_counts['Count'].max())
         ]
     ),
-    margin={"r": 0, "t": 30, "l": 0, "b": 0},
+    margin={"r": 0, "t": 30, "l": 0, "b": 50},
     height=400,
     font=dict(color='white'),  # Set font color to white for better readability on dark background
     plot_bgcolor='black',  # Set background color of the plot area to black
@@ -165,8 +165,9 @@ fig.update_layout(
         'currentvalue': {
             'visible': True, 
             'prefix': 'Year: ',
-            'font': {'size': 10, 'color': 'white'}
-        }
+            'font': {'size': 14, 'color': 'white'}
+        },
+        'pad': {'t': 30}  # Add some padding between map and slider,
     }],
 )
 
@@ -310,9 +311,9 @@ fig3.update_layout(
     height=410,  # Increase the height to fit the content better
     # width=800,   # Adjust the width for better proportions
     title_x=0.5,  # Center the title horizontally
-    title_y=0.98,  # Set the title to the top of the plot
+    title_y=0.95,  # Set the title to the top of the plot
     title_font=dict(size=18, family="Trebuchet MS", weight='bold'),
-    margin=dict(t=40, b=0, l=0, r=0),
+    margin=dict(t=50, b=0, l=0, r=0),
 )
 
 # Show the Treemap
@@ -355,9 +356,10 @@ html_layout = f"""
             color: white;
             font-family: 'Trebuchet MS', sans-serif; 
             font-size: 24px;
+            letter-spacing: 1px; 
             font-weight: bold;
            
-            margin-top: 4px;  /* Space between title and grid */
+            margin-top: 8px;  /* Space between title and grid */
         }}
 
         /* Top-left quadrant for the map */
@@ -401,7 +403,10 @@ html_layout = f"""
 <body>
 
  <!-- Common title for the entire visualization -->
-    <div class="common-title">Traffic Crash Intensity and Analysis Dashboard: 2012-23</div>
+    <div class="common-title">
+TRAFFIC CRASH INTENSITY AND ANALYSIS DASHBOARD: 2012-23
+
+</div>
 
 
 
