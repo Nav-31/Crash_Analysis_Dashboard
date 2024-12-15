@@ -12,6 +12,16 @@ dataset = pd.read_csv(data_path)
 
 # Replace 'Station Wagon/Sport Utility Vehicle' with 'SUV' in the 'VEHICLE TYPE CODE 3' column
 dataset['VEHICLE TYPE CODE 3'] = dataset['VEHICLE TYPE CODE 3'].replace('Station Wagon/Sport Utility Vehicle', 'SUV')
+dataset['VEHICLE TYPE CODE 3'] = dataset['VEHICLE TYPE CODE 3'].replace('Passenger Vehicle', 'Passenger Car')
+dataset['CONTRIBUTING FACTOR VEHICLE 1'] = dataset['CONTRIBUTING FACTOR VEHICLE 1'].replace('Unsafe Speed', 'OverSpeed')
+dataset['CONTRIBUTING FACTOR VEHICLE 1'] = dataset['CONTRIBUTING FACTOR VEHICLE 1'].replace('Alcohol Involvement', 'Alcohol')
+dataset['CONTRIBUTING FACTOR VEHICLE 1'] = dataset['CONTRIBUTING FACTOR VEHICLE 1'].replace('Driver Inattention/Distraction', 'Driver Distracted')
+dataset['CONTRIBUTING FACTOR VEHICLE 1'] = dataset['CONTRIBUTING FACTOR VEHICLE 1'].replace('Failure To Yield Right-Of-Way', 'Yield Violation')
+dataset['CONTRIBUTING FACTOR VEHICLE 1'] = dataset['CONTRIBUTING FACTOR VEHICLE 1'].replace('Following Too Closely', 'Tailgating ')
+
+
+
+
 
 # Filter out "Unspecified" from both contributing factors and vehicle types
 filtered_dataset = dataset[
@@ -46,6 +56,7 @@ fig3 = px.sunburst(treemap_data,
 fig3.update_layout(
     height=600,  # Increase the height to fit the content better
     width=800,   # Adjust the width for better proportions
+    margin=dict(t=40, b=20, l=0, r=0),
 )
 
 # Show the Treemap

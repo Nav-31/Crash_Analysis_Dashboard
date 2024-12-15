@@ -39,9 +39,12 @@ fig_killed = go.Figure(data=[go.Pie(labels=labels_killed, values=killed_data, ho
 
 # Set the title for the pie chart
 fig_killed.update_layout(
-    title="People Killed in Traffic Crash 2012-23",
+    title="People Killed in Traffic Crash",
     template="plotly_dark",
-    title_font=dict(size=16, family="Arial", weight='bold'),
+    title_font=dict(size=18, family="Arial", weight='bold'),
+    title_x=0.5,  # Center the title horizontally
+    title_y=0.99,  # Set the title to the top of the plot
+    margin=dict(t=40, b=0, l=0, r=0)
 )
 
 # Create the pie chart for Total People Injured
@@ -49,9 +52,12 @@ fig_injured = go.Figure(data=[go.Pie(labels=labels_injured, values=injured_data,
 
 # Set the title for the pie chart
 fig_injured.update_layout(
-    title="People Injured in Traffic Crash 2012-23",
-    title_font=dict(size=16, family="Arial", weight='bold'),
-    template="plotly_dark"
+    title="People Injured in Traffic Crash",
+    title_font=dict(size=18, family="Trebuchet MS", weight='bold'),
+    title_x=0.5,  # Center the title horizontally
+    title_y=0.99,  # Set the title to the top of the plot
+    template="plotly_dark",
+    margin=dict(t=65, b=0, l=0, r=0)
 )
 # Save the pie chart HTML files for embedding
 fig_killed.write_html('pie_chart_killed.html')
@@ -92,16 +98,82 @@ borough_labels = pd.DataFrame({
     'Longitude': [-73.865433, -73.949997, -73.9712, -73.7949, -74.151535]
 })
 
+# # Create the animated choropleth map with enhanced color scale
+# fig_map = go.Figure(go.Choropleth(
+#     geojson=geojson_data,
+#     locations=borough_crash_counts['BOROUGH'],
+#     z=borough_crash_counts['Count'],
+#     hoverinfo="location+z",
+#     colorscale="Viridis"
+# ))
+
+
+
 # Create the animated choropleth map with enhanced color scale
-fig_map = go.Figure(go.Choropleth(
+fig = px.choropleth_mapbox(
+    borough_crash_counts,
     geojson=geojson_data,
-    locations=borough_crash_counts['BOROUGH'],
-    z=borough_crash_counts['Count'],
-    hoverinfo="location+z",
-    colorscale="Viridis"
-))
+    locations='BOROUGH',  # Column with borough names
+    featureidkey='properties.BoroName',  # Match GeoJSON field for borough names
+    color='Count',  # Color intensity based on crash count
+    animation_frame='Year',  # Animate across years
+    mapbox_style='carto-positron',  # Use light map style
+    title='Crash Intensity by Borough Over Time',
+    center={"lat": 40.7128, "lon": -74.0060},  # Centered on NYC
+    zoom=8.3,
+    color_continuous_scale='Spectral',  # Enhanced color scale
+    labels={'Count': 'Crash Intensity'},
+)
 
+# Add borough labels to the map
+fig.add_scattermapbox(
+    lat=borough_labels['Latitude'],
+    lon=borough_labels['Longitude'],
+    mode='text',
+    text=borough_labels['BOROUGH'],
+    textfont=dict(size=16, color='black', weight='bold'),
+    textposition='middle center',
+    name='Borough Names',
+)
 
+# Update layout to show numerical values on the color bar and apply black background
+fig.update_layout(
+    title_font=dict(size=18, family="Trebuchet MS", weight='bold'),
+    coloraxis_colorbar=dict(
+        title="Crash Count",
+        tickvals=[
+            borough_crash_counts['Count'].min(),
+            borough_crash_counts['Count'].quantile(0.25),
+            borough_crash_counts['Count'].mean(),
+            borough_crash_counts['Count'].quantile(0.75),
+            borough_crash_counts['Count'].max()
+        ],
+        ticktext=[
+            int(borough_crash_counts['Count'].min()),
+            int(borough_crash_counts['Count'].quantile(0.25)),
+            int(borough_crash_counts['Count'].mean()),
+            int(borough_crash_counts['Count'].quantile(0.75)),
+            int(borough_crash_counts['Count'].max())
+        ]
+    ),
+    margin={"r": 0, "t": 30, "l": 0, "b": 0},
+    height=400,
+    font=dict(color='white'),  # Set font color to white for better readability on dark background
+    plot_bgcolor='black',  # Set background color of the plot area to black
+    paper_bgcolor='black',  # Set the background color of the whole paper to black
+    sliders=[{
+        'currentvalue': {
+            'visible': True, 
+            'prefix': 'Year: ',
+            'font': {'size': 10, 'color': 'white'}
+        }
+    }],
+)
+
+# Display the animated map
+# fig.show()
+# Save the bar chart as an HTML file for embedding
+fig.write_html('choropleth_map.html')
 
 
 # BAR GRAPH
@@ -131,12 +203,15 @@ fig = go.Figure(data=[go.Bar(
 
 # Add the title and axis labels
 fig.update_layout(
-    title="Number of Crashes by Hour of the Day (2012-2023)",
-    title_font=dict(size=16, family="Arial", weight='bold'),
+    title="Number of Crashes by Hour of the Day",
+    title_font=dict(size=18, family="Trebuchet MS", weight='bold'),
+    title_x=0.5,  # Center the title horizontally
+    title_y=0.99,  # Set the title to the top of the plot
     xaxis_title="Hour of Day",
     yaxis_title="Crash Count",
     xaxis=dict(tickmode='linear', tickvals=list(range(24))),  # Set x-axis from 0 to 23 hours
     template="plotly_dark",  # Optional: dark theme for better aesthetics
+    margin=dict(t=20, b=50, l=0, r=0)
 )
 
 # Add annotations for the peak value
@@ -150,8 +225,8 @@ fig.add_annotation(
     arrowsize=1,
     arrowcolor='red',
     font=dict(size=12, color="red"),
-    ax=20,
-    ay=-40
+    ax=-40,
+    ay=-10
 )
 
 # Add annotations for the lowest crash count hour
@@ -165,7 +240,7 @@ fig.add_annotation(
     arrowsize=1,
     arrowcolor='red',
     font=dict(size=12, color="red"),
-    ax=-20,
+    ax=0,
     ay=-60
 )
 
@@ -182,8 +257,18 @@ fig.write_html('bar_chart_by_hour.html')
 
 
 
+
 # Replace 'Station Wagon/Sport Utility Vehicle' with 'SUV' in the 'VEHICLE TYPE CODE 3' column
 dataset['VEHICLE TYPE CODE 3'] = dataset['VEHICLE TYPE CODE 3'].replace('Station Wagon/Sport Utility Vehicle', 'SUV')
+dataset['VEHICLE TYPE CODE 3'] = dataset['VEHICLE TYPE CODE 3'].replace('Passenger Vehicle', 'Passenger Car')
+dataset['CONTRIBUTING FACTOR VEHICLE 1'] = dataset['CONTRIBUTING FACTOR VEHICLE 1'].replace('Unsafe Speed', 'OverSpeed')
+dataset['CONTRIBUTING FACTOR VEHICLE 1'] = dataset['CONTRIBUTING FACTOR VEHICLE 1'].replace('Alcohol Involvement', 'Alcohol')
+dataset['CONTRIBUTING FACTOR VEHICLE 1'] = dataset['CONTRIBUTING FACTOR VEHICLE 1'].replace('Driver Inattention/Distraction', 'Driver Distracted')
+dataset['CONTRIBUTING FACTOR VEHICLE 1'] = dataset['CONTRIBUTING FACTOR VEHICLE 1'].replace('Failure To Yield Right-Of-Way', 'Yield Violation')
+dataset['CONTRIBUTING FACTOR VEHICLE 1'] = dataset['CONTRIBUTING FACTOR VEHICLE 1'].replace('Following Too Closely', 'Tailgating ')
+
+
+
 
 # Filter out "Unspecified" from both contributing factors and vehicle types
 filtered_dataset = dataset[
@@ -209,23 +294,29 @@ fig3 = px.sunburst(treemap_data,
                    path=['CONTRIBUTING FACTOR VEHICLE 1', 'VEHICLE TYPE CODE 3'], 
                    values='Count',
                    template="plotly_dark", 
-                   title='Treemap of Top 5 Contributing Factors and Top 3 Vehicle Types (Excluding Unspecified)')
-                #    color_discrete_sequence=px.colors.qualitative.Light24)
+                   title='Treemap: Top 5 Crash Contributing Factors and Top 3 Vehicle Types',
+                   color_discrete_sequence=px.colors.qualitative.Light24)
                 #                    color='Count',  # Apply color based on the count of each combinatio
                 #    color_continuous_scale='Plasma')
                    
                    
+# Update layout to make text bold
+fig3.update_traces(textfont=dict(family='Arial', size=12, color='black', weight='bold'))
 
 
 
 # Adjust the size of the Treemap
 fig3.update_layout(
-    height=550  # Increase the height to fit the content better
-    # width=400,   # Adjust the width for better proportions
+    height=410,  # Increase the height to fit the content better
+    # width=800,   # Adjust the width for better proportions
+    title_x=0.5,  # Center the title horizontally
+    title_y=0.98,  # Set the title to the top of the plot
+    title_font=dict(size=18, family="Trebuchet MS", weight='bold'),
+    margin=dict(t=40, b=0, l=0, r=0),
 )
 
 # Show the Treemap
-fig3.show()
+# fig3.show()
 
 # Save the Treemap as an HTML file for embedding
 fig3.write_html('treemap.html')
@@ -236,40 +327,68 @@ html_layout = f"""
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap" rel="stylesheet">
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crash Intensity Map</title>
     <style>
+     html, body {{
+            margin: 0;
+            padding: 0;
+            height: 100%;  /* Ensure the body and html take the full height */
+            background-color: black;  /* Set background color to black */
+            overflow: hidden;
+        }}
         /* Set up the grid layout with 4 quadrants */
         .grid-container {{
             display: grid;
             grid-template-columns: 50% 50%;
-            grid-template-rows: 60% 45%;
-            height: 100vh;
+            grid-template-rows: 60% 40%;
+            height: calc(100vh - 20px);
 
+        }}
+
+         /* Common title styling */
+        .common-title {{
+            text-align: center;
+            color: white;
+            font-family: 'Trebuchet MS', sans-serif; 
+            font-size: 24px;
+            font-weight: bold;
+           
+            margin-top: 4px;  /* Space between title and grid */
         }}
 
         /* Top-left quadrant for the map */
         .top-left {{
             grid-column: 1;
             grid-row: 1;
-        }}
-
-        /* Bottom-right quadrant for pie charts side by side */
-        .bottom-right {{
-            grid-column: 2;
-            grid-row: 2;
-            background-color: #f0f0f0;
- 
-            display: flex;
-            
+            background-color: black;
         }}
 
         /* Top-right quadrant for the bar graph */
         .top-right {{
             grid-column: 2;
             grid-row: 1;
-            background-color: #f0f0f0;
+            background-color: black;
+        }}
+
+        /* Bottom-right quadrant for pie charts side by side */
+        .bottom-right {{
+            grid-column: 2;
+            grid-row: 2;
+            background-color: black;
+
+            display: flex;
+            
+        }}
+
+        /* Bottom-left quadrant for the bar graph */
+        .bottom-left {{
+            grid-column: 1;
+            grid-row: 2;
+            background-color: black;
         }}
 
         iframe {{
@@ -280,6 +399,12 @@ html_layout = f"""
     </style>
 </head>
 <body>
+
+ <!-- Common title for the entire visualization -->
+    <div class="common-title">Traffic Crash Intensity and Analysis Dashboard: 2012-23</div>
+
+
+
     <div class="grid-container">
         <!-- Top Left: Place the Plotly map here -->
         <div class="top-left">
