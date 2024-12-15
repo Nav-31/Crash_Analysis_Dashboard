@@ -1,0 +1,115 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crash Intensity Map</title>
+    <style>
+     html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;  /* Ensure the body and html take the full height */
+            background-color: black;  /* Set background color to black */
+            overflow: hidden;
+        }
+        /* Set up the grid layout with 4 quadrants */
+        .grid-container {
+            display: grid;
+            grid-template-columns: 50% 50%;
+            grid-template-rows: 60% 40%;
+            height: calc(100vh - 20px);
+
+        }
+
+         /* Common title styling */
+        .common-title {
+            text-align: center;
+            color: white;
+            font-family: 'Trebuchet MS', sans-serif; 
+            font-size: 24px;
+            letter-spacing: 1px; 
+            font-weight: bold;
+           
+            margin-top: 8px;  /* Space between title and grid */
+        }
+
+        /* Top-left quadrant for the map */
+        .top-left {
+            grid-column: 1;
+            grid-row: 1;
+            background-color: black;
+        }
+
+        /* Top-right quadrant for the bar graph */
+        .top-right {
+            grid-column: 2;
+            grid-row: 1;
+            background-color: black;
+        }
+
+        /* Bottom-right quadrant for pie charts side by side */
+        .bottom-right {
+            grid-column: 2;
+            grid-row: 2;
+            background-color: black;
+            display: flex;
+            
+        }
+
+        /* Bottom-left quadrant for the bar graph */
+        .bottom-left {
+            grid-column: 1;
+            grid-row: 2;
+            background-color: black;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+ <!-- Common title for the entire visualization -->
+    <div class="common-title">
+NYC Traffic Crash Intensity and Analysis: 2012-2023
+
+</div>
+
+    <div class="grid-container">
+
+
+        <!-- Top Left: Place the Plotly map here -->
+        <div class="top-left">
+            <iframe src="choropleth_map.html" title="Crash Intensity Map"></iframe>
+        </div>
+
+        
+        <!-- Top Right: Place the bar graph here -->
+        <div class="top-right">
+        <iframe src="treemap.html" title="Treemap of Contributing Factors and Vehicle Types"></iframe>
+        </div>
+
+
+        <div class="bottom-left">
+            <iframe src="bar_chart_by_hour.html" title="Crashes by Hour of Day"></iframe>
+        </div>
+
+        
+        <!-- Bottom Right: Pie charts for killed and injured side by side -->
+        <div class="bottom-right">
+            <div style="width: 50%;">
+                <iframe src="pie_chart_killed.html"></iframe>
+            </div>
+
+            <div style="width: 50%;">
+                <iframe src="pie_chart_injured.html"></iframe>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

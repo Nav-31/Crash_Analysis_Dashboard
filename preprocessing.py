@@ -1,7 +1,7 @@
 import pandas as pd
 
 # Load the dataset
-file_path = 'crash.csv'  # Replace with the correct path
+file_path = 'Original_dataset.csv'  
 data = pd.read_csv(file_path)
 
 # Step 1: Drop columns with excessive missing values (threshold > 90% missing)
@@ -20,7 +20,7 @@ columns_to_drop = [
     'CROSS STREET NAME',
     'OFF STREET NAME',
     'ZIP CODE',
-]
+] 
 data_cleaned = data.drop(columns=columns_to_drop)
 
 # Step 2: Impute missing values
@@ -35,7 +35,7 @@ data_cleaned['CRASH DATETIME'] = pd.to_datetime(data_cleaned['CRASH DATE'] + ' '
 
 data_cleaned['CRASH DATE'] = pd.to_datetime(data_cleaned['CRASH DATE']).dt.to_period('M').astype(str)
 
-# data_cleaned.drop(columns=['CRASH DATE', 'CRASH TIME'], inplace=True)
+
 
 # Step 4: Drop rows with missing values in critical columns
 data_cleaned.dropna(subset=['VEHICLE TYPE CODE 3', 'CONTRIBUTING FACTOR VEHICLE 1', 'BOROUGH'], inplace=True)
@@ -46,7 +46,7 @@ for col in string_columns:
     data_cleaned[col] = data_cleaned[col].str.strip().str.title()
 
 # Step 6: Save the cleaned dataset
-output_path = 'cleaned_dataset.csv'  # Replace with the desired output path
+output_path = 'cleaned_dataset.csv'  
 data_cleaned.to_csv(output_path, index=False)
 
 print(f"Cleaned dataset saved to {output_path}")
